@@ -3,7 +3,9 @@ Copyright (c) 2026 Zayn Blore. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zayn Blore
 -/
-import FormalConjectures.OpenQuantumProblems.«35»
+module
+
+public import AME125.Defs
 
 /-!
 # Qudit graph states over `ZMod 5`
@@ -18,6 +20,8 @@ of `n/2` parties (`graphState_isAME`).
 
 A configuration of `Fin 5` levels is a vector over `ZMod 5`: the two types are the same.
 -/
+
+@[expose] public section
 
 namespace AME125
 
@@ -75,7 +79,7 @@ lemma sum_χ_dot {k : ℕ} (e : Fin k → ZMod 5) :
   split_ifs with he
   · simp [he]
   · obtain ⟨j, hj⟩ := Function.ne_iff.mp he
-    exact Finset.prod_eq_zero (Finset.mem_univ j) (if_neg hj)
+    exact Finset.prod_eq_zero (Finset.mem_univ j) (ite_eq_right hj)
 
 /-- `xᵀ U x` at `y + w`, expanded: the cross terms are `∑ j, (∑ i, w i · S i j) · y j` with
 `S = U + Uᵀ`. -/
@@ -255,7 +259,7 @@ theorem graphState_firstHalf {n : ℕ} (hn : Even n) (U : Matrix (Fin n) (Fin n)
       funext k
       simp [coeff, lift]
     have h5 : ((5 : ℂ) ^ (n / 2)) ≠ 0 := pow_ne_zero _ (by norm_num)
-    rw [hK0 rfl, if_pos h0, if_pos rfl, hk]
+    rw [hK0 rfl, ite_eq_left h0, ite_eq_left rfl, hk]
     field_simp
     simp
   · have hne : coeff hm (U + Uᵀ) (toZ a - toZ b) ≠ 0 := by
@@ -275,7 +279,7 @@ theorem graphState_firstHalf {n : ℕ} (hn : Even n) (U : Matrix (Fin n) (Fin n)
       have hi := congrFun hw (leftIndex hm i)
       rw [lift_leftIndex] at hi
       exact sub_eq_zero.mp hi
-    rw [if_neg hne, if_neg hab]
+    rw [ite_eq_right hne, ite_eq_right hab]
     ring
 
 /-- **A graph state over `ZMod 5` on an even number of parties is AME** when, for every set `A`

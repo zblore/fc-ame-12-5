@@ -3,7 +3,16 @@ Copyright (c) 2026 Zayn Blore. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zayn Blore
 -/
+module
+
 import AME125
+-- `import all` makes the proofs and private declarations of each module visible here; a plain
+-- import of a module hides them, and every declaration would look unreachable.
+import all AME125.Data
+import all AME125.GraphState
+import all AME125.Certificate
+import all AME125.FormalTarget
+import all AME125.Control
 
 /-!
 Audit: every hand-written declaration in `AME125`, private ones included, is reachable from one
@@ -82,7 +91,7 @@ end AME125Audit
 
 /-- Control: an orphan recursive definition. Its equation lemma (realised below) mentions it, so
 an audit that counted any mention as a use would pass it; this one must report it. -/
-def AME125.vacuityControl : ℕ → ℕ
+public def AME125.vacuityControl : ℕ → ℕ
   | 0 => 0
   | n + 1 => AME125.vacuityControl n
 

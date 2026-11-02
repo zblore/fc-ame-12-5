@@ -3,8 +3,10 @@ Copyright (c) 2026 Zayn Blore. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zayn Blore
 -/
-import AME125.Data
-import AME125.GraphState
+module
+
+public import AME125.Data
+public import AME125.GraphState
 
 /-!
 # The finite core: every cut of the AME(12,5) graph is injective
@@ -20,6 +22,8 @@ carries a passed check over to a sum in `ZMod 5`; an inverse makes the block inj
 (`cutInj_of_inverse`), which gives the cut condition for every set of six parties
 (`cutInj_all`).
 -/
+
+@[expose] public section
 
 namespace AME125
 
@@ -203,7 +207,7 @@ theorem cutInj_all (A : Finset (Fin 12)) (hA : A.card = 6) : CutInj (U + Uᵀ) A
   · simp [hj, (testBit_maskOf A j).mpr hj]
   · have hb : (maskOf A).testBit j.1 = false :=
       Bool.eq_false_iff.mpr (mt (testBit_maskOf A j).mp hj)
-    rw [if_neg hj, hb, if_neg Bool.false_ne_true,
+    rw [ite_eq_right hj, hb, ite_eq_right Bool.false_ne_true,
       U_add_transpose i j fun h ↦ hj (h ▸ hi)]
 
 end AME125

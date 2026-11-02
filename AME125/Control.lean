@@ -3,7 +3,9 @@ Copyright (c) 2026 Zayn Blore. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zayn Blore
 -/
-import AME125.Certificate
+module
+
+public import AME125.Certificate
 
 /-!
 # Control: a broken graph is not AME
@@ -14,6 +16,8 @@ parties has a non-zero entry off the diagonal (`controlState_not_isAME`). The pr
 the same reduction formula as the headline result and uses none of the certificates, so it
 shows the formula really separates AME states from others.
 -/
+
+@[expose] public section
 
 namespace AME125
 
@@ -46,7 +50,7 @@ lemma coeff_e0 :
       split_ifs with h
       · rw [Pi.sub_apply]
         have h1 : toZ e0 ⟨i.1, h⟩ = 0 := by
-          simp only [toZ, e0, hi, if_false]
+          simp only [toZ, e0, hi, ite_false]
           rfl
         have h2 : toZ (0 : Config 6 5) ⟨i.1, h⟩ = 0 := rfl
         rw [h1, h2, sub_zero]
@@ -61,8 +65,8 @@ theorem controlState_not_isAME : ¬ IsAME controlState := by
   have hentry := congrFun (congrFun hred e0) 0
   obtain ⟨K, -, hK⟩ := reduced_graphState (Nat.div_le_self 12 2) controlU e0 0
   have hne : e0 ≠ 0 := fun h0 ↦ by simpa [e0] using congrFun h0 ⟨0, by norm_num⟩
-  rw [maximallyMixed_apply, if_neg hne] at hentry
-  rw [controlState, hK, coeff_e0, if_pos rfl] at hentry
+  rw [maximallyMixed_apply, ite_eq_right hne] at hentry
+  rw [controlState, hK, coeff_e0, ite_eq_left rfl] at hentry
   have hχ : χ K ≠ 0 := fun h0 ↦ by simpa [h0] using AddChar.norm_apply χ K
   simp [hχ] at hentry
 

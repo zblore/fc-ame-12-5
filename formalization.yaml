@@ -2,16 +2,27 @@
 
 version: "v0.4"
 
+# Authors and maintainers use the {name, orcid} form that Palomar's submission profile accepts.
+# The upstream v0.4 schema takes plain name strings, so a strict check against it reports those
+# two entries; everything else validates.
+
 project:
-  name: "fc-ame-12-5"
+  name: "An absolutely maximally entangled state of twelve five-level systems: AME(12, 5) exists"
   description: >-
     A machine-checked proof that an absolutely maximally entangled state of twelve five-level
-    systems exists, against the definitions of Formal Conjectures Open Quantum Problem 35. The
-    witness is the graph state of the AME(12,5) graph of S. Bevins and Y. Bidav. The proof is a
-    general graph-state criterion over ZMod 5 plus 924 kernel-checked cut certificates.
+    systems exists. The statement and definitions are Formal Conjectures' (Open Quantum Problem
+    35, `ame_12_5_open`), copied verbatim into Challenge.lean, so this entry proves Formal
+    Conjectures' own statement; one proof step inside the definition combineFirst is changed so
+    that Comparator can match it, and the definition is unchanged. The witness is the graph state
+    of the AME(12, 5) graph of S. Bevins and Y. Bidav. The proof is a general graph-state
+    criterion over ZMod 5 plus 924 kernel-checked cut certificates.
   authors:
-    - "Zayn Blore"
+    - name: "Zayn Blore"
+      orcid: "0009-0009-8447-7247"
   license: "Apache-2.0"
+  responsible_maintainers:
+    - name: "Zayn Blore"
+      orcid: "0009-0009-8447-7247"
 
 sources:
   - title: >-
@@ -21,7 +32,7 @@ sources:
       - "Samuel Bevins"
       - "Yunus Bidav"
     id: "https://arxiv.org/abs/2608.05781"
-    type: "preprint"
+    type: "paper"
     location: "The Hermitian self-dual MDS code [12,6,7] over GF(25) and its AME(12,5) state"
     relationship: "formalizes"
     author_endorsement: "not-contacted"
@@ -30,7 +41,7 @@ sources:
       - "Samuel Bevins"
       - "Yunus Bidav"
     id: "https://github.com/sjbevins/AME-paper-materials/tree/3fd8edc5bfc505e512c7a0c6168f92b44019f142"
-    type: "dataset"
+    type: "other"
     location: >-
       data/theta_ame125.txt, the 12 × 12 graph matrix over Z_5 of the AME(12,5) state, used
       byte for byte under the MIT licence. Only the matrix is used; none of the authors' code.
@@ -38,12 +49,19 @@ sources:
     author_endorsement: "not-contacted"
 
 related_formalizations:
-  - id: "https://github.com/google-deepmind/formal-conjectures/blob/9833012f66a47cdd3a6f3eca9cb4b84e0f18a003/FormalConjectures/OpenQuantumProblems/35.lean"
+  - id: "https://github.com/google-deepmind/formal-conjectures/blob/b6939a3a0d89e5f999fa8c6483a6ef646c1e2923/FormalConjectures/OpenQuantumProblems/35.lean"
     relationship: "builds-on"
     note: >-
-      Supplies the statement `OpenQuantumProblem35.ame_12_5_open` and every definition it
-      uses. This repository depends on Formal Conjectures at that commit and proves the same
-      proposition without using the declaration left as `sorry` there.
+      Supplies the statement `ame_12_5_open` and every definition it uses. Challenge.lean copies
+      the definitions the statement uses, and the statement, verbatim, with Formal Conjectures'
+      names; AME125/Defs.lean copies the file up to its benchmark statements, with the `category`
+      and `AMS` attributes removed and Mathlib imported in place of Formal Conjectures' own
+      library. In both, one proof step inside combineFirst is `exact Nat.sub_lt_sub_right him
+      i.2` instead of Formal Conjectures' `omega` (see fidelity); audit/Audit.lean keeps Formal
+      Conjectures' original under another name and checks by rfl that the two are equal.
+      scripts/check-fc-match.py checks all of this against Formal Conjectures at that commit. An
+      earlier version of this proof depended on Formal Conjectures directly (commit 9833012f)
+      and was linked from Formal Conjectures PR #7539.
   - id: "https://github.com/KitaKen1/ame-11-10-lean/blob/6b7d009a43970587a3386b690221bec4339ce271/lean/QuinaryParent.lean#L21-L22"
     relationship: "independent"
     note: >-
@@ -65,25 +83,41 @@ automation:
         - "Claude Opus 5.5"
       framework: "Claude Code"
   notes: >-
-    I drafted the Lean with Claude Code. The authors' matrix was checked independently in
-    Python, exactly mod 5, before any Lean was written.
+    I drafted the Lean with Claude Code, and ported it to Lean v4.35.0-rc3 and Palomar's layout
+    with Claude Code. The authors' matrix was checked independently in Python, exactly mod 5,
+    before any Lean was written.
 
 review:
-  status: "author-verified"
+  status: "agent-reviewed"
   reviewers:
     - "Zayn Blore"
   notes: >-
-    Checks run: statement term-identical to Formal Conjectures' `ame_12_5_open`; the main
-    results use only propext, Classical.choice and Quot.sound, and the kernel checks of the
-    certificates use at most propext; a control (six edges removed from the graph) is proved
-    not AME; every declaration is reachable from the main result or the control; the Lean data
-    file and the certificates match what the scripts generate from the authors' matrix;
-    `lake build` with Mathlib's standard linter set, `lake exe lint-style AME125` and
-    `lake exe runLinter AME125` pass; the audits in `audit/` pass, and each was shown to fail
-    on a planted fault.
+    Checked locally (Windows): the build; audit/Audit.lean, which checks that the proof under
+    Formal Conjectures' name has exactly the headline's type, that the main results use only
+    propext, Classical.choice and Quot.sound and the kernel checks of the certificates at most
+    propext, and that combineFirst equals Formal Conjectures' original; audit/Vacuity.lean,
+    which checks that every declaration is reachable from the main result or the control (six
+    edges removed from the graph, proved not AME); audit/lexical.py, which checks that the Lean
+    data and the certificates match what the scripts generate from the authors' matrix; and
+    scripts/check-fc-match.py and its self-test. `lake comparator` needs Linux, so it runs in CI
+    and in Palomar's own pipeline. An AI-model review of the port (Claude Fable 5.1, 1 November
+    2026, not published) reran Comparator's comparison and axiom check on exported environments,
+    replayed the Solution export through leanchecker and nanoda, and found no problem with the
+    mathematics or the port. A second review of the port (OpenAI Astra, 1 November 2026, not
+    published) stopped at a usage limit before its report, twice; its notes confirmed the build,
+    the audits, the data and certificates, the kernel checks, Palomar's validator and source
+    checker, and Comparator's fault-injection tests, and found three gaps, all since closed:
+    scripts/check-fc-match.py missed a context command behind a modifier (`public notation`),
+    and then one with a comment between the modifier and the command, and audit/lexical.py
+    missed declarations marked `public`. Before the port, the proof had two AI-model reviews
+    commissioned by the author (OpenAI Astra and Claude Fable 5.1, 22 October 2026), not
+    published, which found no defect in the formal result; their fixes are in the earlier
+    version this port keeps.
 
 status:
-  scope: "Full proof of the single Formal Conjectures statement `ame_12_5_open`."
+  scope: >-
+    Full proof of the single Formal Conjectures statement `ame_12_5_open`. Apart from the
+    placeholder in Challenge.lean there is no sorry.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms:
@@ -91,6 +125,14 @@ status:
     - "Classical.choice"
     - "Quot.sound"
   main_results:
+    - description: "An AME(12,5) state exists. The name Palomar checks."
+      declaration: "OpenQuantumProblem35.ame_12_5_open"
+      file: "AME125/FormalTarget.lean"
+      sorry_count: 0
+      axioms:
+        - "propext"
+        - "Classical.choice"
+        - "Quot.sound"
     - description: "An AME(12,5) state exists."
       declaration: "AME125.ame_12_5_open"
       file: "AME125/FormalTarget.lean"
@@ -99,24 +141,45 @@ status:
         - "propext"
         - "Classical.choice"
         - "Quot.sound"
+    - description: >-
+        A graph state over ZMod 5 on an even number of parties is AME when every half-cut block
+        of U + Uᵀ is injective.
+      declaration: "AME125.graphState_isAME"
+      file: "AME125/GraphState.lean"
+      sorry_count: 0
+      axioms:
+        - "propext"
+        - "Classical.choice"
+        - "Quot.sound"
 
 fidelity:
   divergences: >-
-    None in the statement, which is Formal Conjectures' own. The 12! permutations in `IsAME`
-    are not enumerated: permuting the parties of a graph state gives the graph state of the
-    permuted matrix (`AME125.permuteState_graphState`), so the condition becomes one fact about
-    each set of six parties. The witness is the graph state with amplitude 5⁻⁶ · χ(xᵀ U x),
-    χ(k) = exp(2πik/5), with U the upper triangle of the authors' matrix, so the edge weight
-    between parties i and j is their entry (i, j) and the diagonal gives local phases. The
-    general criterion (`AME125.graphState_isAME`) is proved for any even number of parties and
-    any matrix over ZMod 5. The finite core is 924 inverse certificates, checked by
-    `decide +kernel` (no `native_decide`) in natural-number arithmetic mod 5.
+    None in the statement, which is Formal Conjectures' own, copied verbatim. One proof step in
+    the definition combineFirst differs: Formal Conjectures proves `i.1 - m < n - m` by `omega`,
+    which under Lean's module system leaves a private auxiliary lemma named after the module, so
+    the copies in Challenge and AME125.Defs could never compare equal in Comparator; both use
+    `exact Nat.sub_lt_sub_right him i.2`. The proposition proved is the same, so the definition
+    is the same, and audit/Audit.lean checks it against Formal Conjectures' original by rfl. The
+    12! permutations in `IsAME` are not enumerated: permuting the parties of a graph state gives
+    the graph state of the permuted matrix (`AME125.permuteState_graphState`), so the condition
+    becomes one fact about each set of six parties. The witness is the graph state with
+    amplitude 5⁻⁶ · χ(xᵀ U x), χ(k) = exp(2πik/5), with U the upper triangle of the authors'
+    matrix, so the edge weight between parties i and j is their entry (i, j) and the diagonal
+    gives local phases. The general criterion (`AME125.graphState_isAME`) is proved for any even
+    number of parties and any matrix over ZMod 5. The finite core is 924 inverse certificates,
+    checked by `decide +kernel` (no `native_decide`) in natural-number arithmetic mod 5.
 
 alignment:
   namespaces:
+    - "OpenQuantumProblem35"
     - "AME125"
   statements:
     - source: "Formal Conjectures, OpenQuantumProblem35.ame_12_5_open"
+      lean: "OpenQuantumProblem35.ame_12_5_open"
+      module: "AME125.FormalTarget"
+      status: "proved"
+      note: "Formal Conjectures' own name, checked by Comparator."
+    - source: "Bevins and Bidav (2026), the AME(12,5) state"
       lean: "AME125.ame_12_5_open"
       module: "AME125.FormalTarget"
       status: "proved"

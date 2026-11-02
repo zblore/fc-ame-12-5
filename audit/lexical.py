@@ -12,17 +12,20 @@ import sys
 import tempfile
 
 root = sys.argv[1] if len(sys.argv) > 1 else "."
-files = sorted(glob.glob(os.path.join(root, "AME125", "*.lean")))
+# AME125/Defs.lean is Formal Conjectures' file for the problem (see its Provenance section), so
+# its names count as declared but its text is not held to this project's format;
+# scripts/check-fc-match.py checks it against Formal Conjectures instead.
+fc_path = os.path.join(root, "AME125", "Defs.lean")
+files = sorted(f for f in glob.glob(os.path.join(root, "AME125", "*.lean"))
+               if os.path.normpath(f) != os.path.normpath(fc_path))
 files.append(os.path.join(root, "AME125.lean"))
-fc_path = os.path.join(root, ".lake/packages/formal_conjectures/FormalConjectures",
-                       "OpenQuantumProblems/35.lean")
 fc = open(fc_path, encoding="utf-8").read()
 # Read bytes, so CRLF line endings are seen rather than silently converted.
 raw = {f: open(f, "rb").read() for f in files}
 src = {f: b.decode("utf-8") for f, b in raw.items()}
-# Modifiers in any order, so `private lemma`, `protected def` and `private noncomputable def`
-# are seen too, and indented declarations as well as ones at column zero.
-decl_re = (r"^[ \t]*(?:@\[[^\]]*\]\s*)?(?:(?:private|protected|noncomputable|partial|unsafe)\s+)*"
+# Modifiers in any order, so `private lemma`, `protected def`, `public theorem` and
+# `private noncomputable def` are seen too, and indented declarations as well as ones at column zero.
+decl_re = (r"^[ \t]*(?:@\[[^\]]*\]\s*)?(?:(?:public|private|protected|noncomputable|partial|unsafe)\s+)*"
            r"(?:def|lemma|theorem|abbrev|structure|inductive)\s+(\S+)")
 declared = set(re.findall(decl_re, "\n".join(src.values()), re.M))
 declared |= set(re.findall(decl_re, fc, re.M))
@@ -64,9 +67,8 @@ for f, t in src.items():
     code = re.sub(r"--[^\n]*", "", re.sub(r"/-.*?-/", "", t, flags=re.S))
     if re.search(r":=\s*True\b|\bsorry\b|\badmit\b|native_decide", code):
         problems.append(f"{f}: placeholder, sorry, admit or native_decide")
-    for imp in re.findall(r"^import\s+(\S+)", t, re.M):
-        if not (imp.startswith("AME125") or imp == "Mathlib"
-                or imp == "FormalConjectures.OpenQuantumProblems.«35»"):
+    for imp in re.findall(r"^(?:public\s+)?import\s+(\S+)", t, re.M):
+        if not (imp.startswith("AME125") or imp == "Mathlib"):
             problems.append(f"{f}: imports {imp}")
     for i, line in enumerate(t.replace("\r\n", "\n").split("\n"), 1):
         if len(line) > 100:
